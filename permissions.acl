@@ -119,6 +119,14 @@ rule ReviewerOneDetail {
     action: ALLOW
 }
 
+rule SystemAdmin {
+  description:  "System ACL to permit all access"
+  participant: "org.blockchaingang.credentialfabric.SystemAdmin"
+  operation: ALL
+  resource: "org.hyperledger.composer.system.**"
+  action: ALLOW  
+}
+
 rule SystemACL {
   description:  "System ACL to permit all access"
   participant: "org.hyperledger.composer.system.Participant"
