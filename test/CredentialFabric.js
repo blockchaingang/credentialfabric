@@ -145,7 +145,15 @@ describe('CredentialFabric', () => {
                         cred.owner.$identifier.should.equal(issuance.recepient.$identifier);
                         cred.issuingAuthority.$identifier.should.equal(issuance.authority.$identifier);
                         cred.$identifier.should.equal(issuance.$identifier);
-                        //TODO: Test for Score
+                    })
+                    .then( function(){
+                        return businessNetworkConnection.getAssetRegistry(NS + '.CredentialEntryDetail');
+                    })
+                    .then( function(registry) {
+                        return registry.get(issuance.$identifier);
+                    })
+                    .then( function(detail) {
+                        detail.score.should.equal(issuance.score);
                     });
         });
     });
@@ -216,9 +224,12 @@ describe('CredentialFabric', () => {
             authority.lastName = 'Registrar';
 
             // create an existing Credential
+            const detail = factory.newResource(NS, 'CredentialEntryDetail', uuid.v4(), { generate: 'sample' } );
             const credential = factory.newResource(NS, 'CredentialEntry', uuid.v4(), { generate: 'sample' } );
             credential.owner = factory.newRelationship(NS, 'Member', member.$identifier);
             credential.issuingAuthority = factory.newRelationship(NS, 'Authority', authority.$identifier);
+            credential.detail = factory.newRelationship(NS, 'CredentialEntryDetail', detail.$identifier);
+            detail.entry = factory.newRelationship(NS, 'CredentialEntry', credential.$identifier);
 
             // create Issue Request
             const updateRequest = factory.newResource(NS, 'UpdateRequest', uuid.v4() );
@@ -245,6 +256,12 @@ describe('CredentialFabric', () => {
                         return registry.add(credential);
                     })
                     .then( () => {
+                        return businessNetworkConnection.getAssetRegistry(NS + '.CredentialEntryDetail');
+                    })
+                    .then( (registry) => {
+                        return registry.add(detail);
+                    })
+                    .then( () => {
                         return businessNetworkConnection.getAssetRegistry(NS + '.UpdateRequest');
                     })
                     .then( (registry) => {
@@ -269,8 +286,15 @@ describe('CredentialFabric', () => {
                         }
                         cred.owner.$identifier.should.equal(currance.recepient.$identifier);
                         cred.issuingAuthority.$identifier.should.equal(currance.authority.$identifier);
-                        //cred.$identifier.should.equal(currance.$identifier);
-                        //TODO: Test for Score
+                    })
+                    .then( function(){
+                        return businessNetworkConnection.getAssetRegistry(NS + '.CredentialEntryDetail');
+                    })
+                    .then( function(registry) {
+                        return registry.get(detail.$identifier);
+                    })
+                    .then( function(deet) {
+                        deet.score.should.equal(currance.score);
                     });
         });
     });

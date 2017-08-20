@@ -3,7 +3,7 @@
     "composer": "^0.11.0"
   },
   "name": "credential-fabric-network",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Manage credentials and trancripts from multiple organizations.",
   "scripts": {
     "prepublish": "mkdirp ./dist && composer archive create  --sourceType dir --sourceName . -a ./dist/credential-fabric-network.bna",

@@ -78,13 +78,13 @@ rule AuthorityUpdateDetail {
     action: ALLOW
 }
 
-/*
+
 rule ReviewerAllEntry {
     description: "Allow the view read access to member credentials"
     participant(r): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
     resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
-    transaction(tx): "org.blockchaingang.credentialfabric.GrantAll"
+    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredentials"
     condition: (r.getIdentifier() == tx.reviewer.getIdentifier())
     action: ALLOW
 }
@@ -94,8 +94,8 @@ rule ReviewerAllDetail {
     participant(r): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
     resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
-    transaction(tx): "org.blockchaingang.credentialfabric.GrantAll"
-    condition: (r.getIdentifier() == tx.reviewer.getIdentifier())
+    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredentials"
+    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.detail)
     action: ALLOW
 }
 
@@ -104,7 +104,7 @@ rule ReviewerOneEntry {
     participant(r): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
     resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
-    transaction(tx): "org.blockchaingang.credentialfabric.GrantOne"
+    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredential"
     condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == c)
     action: ALLOW
 }
@@ -114,11 +114,10 @@ rule ReviewerOneDetail {
     participant(r): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
     resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
-    transaction(tx): "org.blockchaingang.credentialfabric.GrantOne"
-    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == d.entry)
+    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredential"
+    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == d.entry && tx.detail)
     action: ALLOW
 }
-*/
 
 rule SystemACL {
   description:  "System ACL to permit all access"
