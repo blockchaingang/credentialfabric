@@ -105,7 +105,7 @@ describe('CredentialFabric', () => {
 
             // create Isssue Request
             const issueRequest = factory.newResource(NS, 'IssueRequest', uuid.v4() );
-            issueRequest.active = true;
+            issueRequest.fulfilled = false;
             issueRequest.requester = factory.newRelationship(NS, 'Member', member.$identifier);
             issueRequest.authority = factory.newRelationship(NS, 'Authority', authority.$identifier);
 
@@ -233,7 +233,7 @@ describe('CredentialFabric', () => {
 
             // create Issue Request
             const updateRequest = factory.newResource(NS, 'UpdateRequest', uuid.v4() );
-            updateRequest.active = true;
+            updateRequest.fulfilled = false;
             updateRequest.requester = factory.newRelationship(NS, 'Member', member.$identifier);
             updateRequest.authority = factory.newRelationship(NS, 'Authority', authority.$identifier);
             updateRequest.currentEntry = factory.newRelationship(NS, 'CredentialEntry', credential.$identifier);
