@@ -113,7 +113,7 @@ describe('CredentialFabric', () => {
             const issuance = factory.newTransaction(NS, 'IssueCredential');
             issuance.requestId = issueRequest.$identifier;
             issuance.type = 'BACHELOR';
-            issuance.name = 'Reality';
+            issuance.description = 'Reality';
             issuance.startDate = new Date('1989-08-01');
             issuance.endDate = new Date('1993-05-31');
             issuance.expiryDate = null;
@@ -136,7 +136,7 @@ describe('CredentialFabric', () => {
                     })
                     .then((cred) => {
                         cred.type.should.equal(issuance.type);
-                        cred.name.should.equal(issuance.name);
+                        cred.description.should.equal(issuance.description);
                         cred.startDate.toISOString().should.equal(issuance.startDate.toISOString());
                         cred.endDate.toISOString().should.equal(issuance.endDate.toISOString());
                         if( cred.expiryDate !== null && issuance.expiryDate !== null ) {
@@ -231,7 +231,7 @@ describe('CredentialFabric', () => {
             const currance = factory.newTransaction(NS, 'UpdateCredential');
             currance.requestId = updateRequest.$identifier;
             currance.type = 'BACHELOR';
-            currance.name = 'Reality';
+            currance.description = 'Reality';
             currance.startDate = new Date('1989-08-01');
             currance.endDate = new Date('1993-05-31');
             currance.expiryDate = null;
@@ -261,7 +261,7 @@ describe('CredentialFabric', () => {
                     })
                     .then((cred) => {
                         cred.type.should.equal(currance.type);
-                        cred.name.should.equal(currance.name);
+                        cred.description.should.equal(currance.description);
                         cred.startDate.toISOString().should.equal(currance.startDate.toISOString());
                         cred.endDate.toISOString().should.equal(currance.endDate.toISOString());
                         if( cred.expiryDate !== null && currance.expiryDate !== null ) {
