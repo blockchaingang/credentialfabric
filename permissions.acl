@@ -1,0 +1,129 @@
+/**
+ * Access Control List for the auction network.
+ */
+rule MemberAny {
+    description: "Allow the member read access to all basic credential information"
+    participant: "org.blockchaingang.credentialfabric.Member"
+    operation: READ
+    resource: "org.blockchaingang.credentialfabric.CredentialEntry"
+    action: ALLOW
+}
+
+rule MemberOwner {
+    description: "Allow the member read access to their credential details "
+    participant(m): "org.blockchaingang.credentialfabric.Member"
+    operation: READ
+    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
+    condition: (m.getIdentifier() == d.entry.owner.getIdentifier())
+    action: ALLOW
+}
+
+rule MemberRequestIssue {
+    description: "Allow the member to create, read and delete the request"
+    participant(m): "org.blockchaingang.credentialfabric.Member"
+    operation: CREATE, READ, DELETE
+    resource(r): "org.blockchaingang.credentialfabric.IssueRequest"
+    transaction: "org.blockchaingang.credentialfabric.RequestCredentialIssue"
+    condition: (r.requester.getIdentifier() == m.getIdentifier())
+    action: ALLOW
+}
+
+rule MemberRequestUpdate {
+    description: "Allow the member to create, read and delete the request"
+    participant(m): "org.blockchaingang.credentialfabric.Member"
+    operation: CREATE, READ, DELETE
+    resource(r): "org.blockchaingang.credentialfabric.UpdateRequest"
+    transaction: "org.blockchaingang.credentialfabric.RequestCredentialUpdate"
+    condition: (r.requester.getIdentifier() == m.getIdentifier())
+    action: ALLOW
+}
+
+rule AuthorityIssue {
+    description: "Allow the authority Create access for new entries"
+    participant(a): "org.blockchaingang.credentialfabric.Authority"
+    operation: CREATE
+    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
+    transaction(tx): "org.blockchaingang.credentialfabric.IssueCredential"
+    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+    action: ALLOW
+}
+
+rule AuthorityUpdate {
+    description: "Allow the authority Update access for existing entries"
+    participant(a): "org.blockchaingang.credentialfabric.Authority"
+    operation: READ, UPDATE
+    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
+    transaction(tx): "org.blockchaingang.credentialfabric.UpdateCredential"
+    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+    action: ALLOW
+}
+
+rule AuthorityIssueDetail {
+    description: "Allow the authority Create access for new entry details"
+    participant(a): "org.blockchaingang.credentialfabric.Authority"
+    operation: CREATE
+    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
+    transaction(tx): "org.blockchaingang.credentialfabric.IssueCredential"
+    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+    action: ALLOW
+}
+
+rule AuthorityUpdateDetail {
+    description: "Allow the authority Update access for existing entry details"
+    participant(a): "org.blockchaingang.credentialfabric.Authority"
+    operation: READ, UPDATE
+    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
+    transaction(tx): "org.blockchaingang.credentialfabric.UpdateCredential"
+    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+    action: ALLOW
+}
+
+/*
+rule ReviewerAllEntry {
+    description: "Allow the view read access to member credentials"
+    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+    operation: READ
+    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
+    transaction(tx): "org.blockchaingang.credentialfabric.GrantAll"
+    condition: (r.getIdentifier() == tx.reviewer.getIdentifier())
+    action: ALLOW
+}
+
+rule ReviewerAllDetail {
+    description: "Allow the view read access to member credentials"
+    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+    operation: READ
+    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
+    transaction(tx): "org.blockchaingang.credentialfabric.GrantAll"
+    condition: (r.getIdentifier() == tx.reviewer.getIdentifier())
+    action: ALLOW
+}
+
+rule ReviewerOneEntry {
+    description: "Allow the view read access to a specific member credential"
+    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+    operation: READ
+    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
+    transaction(tx): "org.blockchaingang.credentialfabric.GrantOne"
+    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == c)
+    action: ALLOW
+}
+
+rule ReviewerOneDetail {
+    description: "Allow the view read access to member credentials"
+    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+    operation: READ
+    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
+    transaction(tx): "org.blockchaingang.credentialfabric.GrantOne"
+    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == d.entry)
+    action: ALLOW
+}
+*/
+
+rule SystemACL {
+  description:  "System ACL to permit all access"
+  participant: "org.hyperledger.composer.system.Participant"
+  operation: ALL
+  resource: "org.hyperledger.composer.system.**"
+  action: ALLOW  
+}
