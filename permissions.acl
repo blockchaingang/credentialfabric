@@ -1,124 +1,273 @@
 /**
  * Access Control List for the auction network.
  */
-rule MemberAny {
-    description: "Allow the member read access to all basic credential information"
-    participant: "org.blockchaingang.credentialfabric.Member"
+
+ /**
+  * Allow Candidates to read their own credentials details
+  * This permission structure uses the Particpant information for the
+  * user attempting access to compare to the Owner of the Credential
+  * and CredentialDetail to restrict access 
+  */
+rule CandidateOwnerCredentialEntries {
+    description: "Allow the candidate to read their own credentials"
+    participant(p): "org.blockchaingang.credentialfabric.Candidate"
     operation: READ
-    resource: "org.blockchaingang.credentialfabric.CredentialEntry"
+    resource(r): "org.blockchaingang.credentialfabric.Credential"
+    condition: (p.getIdentifier() == r.owner.getIdentifier())
     action: ALLOW
 }
 
-rule MemberOwner {
-    description: "Allow the member read access to their credential details "
-    participant(m): "org.blockchaingang.credentialfabric.Member"
+rule CandidateOwnerCredentialDetails {
+    description: "Allow the candidate to read their own credential details"
+    participant(p): "org.blockchaingang.credentialfabric.Candidate"
     operation: READ
-    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
-    condition: (m.getIdentifier() == d.entry.owner.getIdentifier())
+    resource(r): "org.blockchaingang.credentialfabric.CredentialDetail"
+    condition: (p.getIdentifier() == r.entry.owner.getIdentifier())
     action: ALLOW
 }
 
-rule MemberRequestIssue {
-    description: "Allow the member to create, read and delete the request"
-    participant(m): "org.blockchaingang.credentialfabric.Member"
-    operation: CREATE, READ, DELETE
-    resource(r): "org.blockchaingang.credentialfabric.IssueRequest"
-    transaction: "org.blockchaingang.credentialfabric.RequestCredentialIssue"
-    condition: (r.requester.getIdentifier() == m.getIdentifier())
-    action: ALLOW
-}
-
-rule MemberRequestUpdate {
-    description: "Allow the member to create, read and delete the request"
-    participant(m): "org.blockchaingang.credentialfabric.Member"
-    operation: CREATE, READ, DELETE
-    resource(r): "org.blockchaingang.credentialfabric.UpdateRequest"
-    transaction: "org.blockchaingang.credentialfabric.RequestCredentialUpdate"
-    condition: (r.requester.getIdentifier() == m.getIdentifier())
-    action: ALLOW
-}
-
-rule AuthorityIssue {
-    description: "Allow the authority Create access for new entries"
-    participant(a): "org.blockchaingang.credentialfabric.Authority"
+/**
+ * Restricts Requesting issuing of credentials to Candidates
+ * In order to create a Transaction, create permission must be given,
+ * identifying the Transaction as the resource
+ */
+rule CandidateRequestNewCredentialTransaction {
+    description: "Allow the candidate to request new credentials by create the transaction"
+    participant: "org.blockchaingang.credentialfabric.Candidate"
     operation: CREATE
-    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
-    transaction(tx): "org.blockchaingang.credentialfabric.IssueCredential"
-    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+    resource: "org.blockchaingang.credentialfabric.RequestNewCredential"
     action: ALLOW
 }
 
-rule AuthorityUpdate {
-    description: "Allow the authority Update access for existing entries"
-    participant(a): "org.blockchaingang.credentialfabric.Authority"
-    operation: READ, UPDATE
-    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
-    transaction(tx): "org.blockchaingang.credentialfabric.UpdateCredential"
-    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+/**
+ * Restrict creation of the Request Credential Issue assets to Candidates
+ * for themselves and only within the Request Credential Issue Transaction
+ */
+rule CandidateRequestIssueCreate {
+    description: "Allow the candidate to request new credentials by creating the request record"
+    participant(p): "org.blockchaingang.credentialfabric.Candidate"
+    operation: CREATE
+    resource(r): "org.blockchaingang.credentialfabric.NewCredentialRequest"
+    transaction(t): "org.blockchaingang.credentialfabric.RequestNewCredential"
+    condition: (r.requester.getIdentifier() == p.getIdentifier())
     action: ALLOW
 }
+
+/**
+ * Allow Candidates to read and revoke(delete) Credential Issue Requests,
+ * restricted to the requests they own
+ */
+rule CandidateRequestIssueReadDelete {
+    description: "Allow the candidate to read and delete their requests for new credentials"
+    participant(p): "org.blockchaingang.credentialfabric.Candidate"
+    operation: READ, DELETE
+    resource(r): "org.blockchaingang.credentialfabric.RequestNewCredential"
+    condition: (r.requester.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+/**
+ * Restricts requesting updating of existing credentials to Candidates
+ */
+rule CandidateRequestUpdateTransaction {
+    description: "Allow the candidate to request updates to existing credentials by creating the transaction"
+    participant: "org.blockchaingang.credentialfabric.Candidate"
+    operation: CREATE
+    resource: "org.blockchaingang.credentialfabric.RequestCredentialUpdate"
+    action: ALLOW
+}
+
+/**
+ * Restrict creation of the Request Credential Update assets to Candidates
+ * to themselves and only within the Request Credential Update Transaction
+ */
+rule CandidateRequestUpdateCreate {
+    description: "Allow the candidate to request updated credentials by creating the request record"
+    participant(p): "org.blockchaingang.credentialfabric.Candidate"
+    operation: CREATE
+    resource(r): "org.blockchaingang.credentialfabric.UpdateCredentialRequest"
+    transaction: "org.blockchaingang.credentialfabric.RequestCredentialUpdate"
+    condition: (p.getIdentifier() == r.requester.getIdentifier())
+    action: ALLOW
+}
+
+/**
+ * Allow Candidate to read and revoke(delete) Credential Update Requests,
+ * restricted to the requests they own
+ */
+rule CandidateRequestUpdateReadDelete {
+    description: "Allow the member to read and delete the credential update requests"
+    participant(p): "org.blockchaingang.credentialfabric.Candidate"
+    operation: READ, DELETE
+    resource(r): "org.blockchaingang.credentialfabric.UpdateCredentialRequest"
+    condition: (r.requester.getIdentifier() == p.getIdentifier())
+    action: ALLOW
+}
+
+/*
+ * Allow authorities to create Transcations to Issue credentials
+ */
+rule AuthorityIssueTransaction {
+    description: "Allow the authority to create transacttions to issue credentials"
+    participant: "org.blockchaingang.credentialfabric.Authority"
+    operation: CREATE
+    resource: "org.blockchaingang.credentialfabric.IssueCredential"
+    action: ALLOW
+}
+
+rule AuthorityIssueRequest {
+  description: "Allow the authority to read and update the new credential request record"
+  participant(p): "org.blockchaingang.credentialfabric.Authority"
+  operation: READ, UPDATE
+  resource(r): "org.blockchaingang.credentialfabric.NewCredentialRequest"
+  transaction(t): "org.blockchaingang.credentialfabric.IssueCredential"
+  condition: (p.getIdentifier() == r.authority.getIdentifier())
+  action: ALLOW
+}
+
+/*
+ * Restrict createion of Credential Entries and Detail entries
+ * to Aurhority's creating for themselve within the Issue Credential
+ * Transaction
+ */
+rule AuthorityIssueCreate {
+    description: "Allow the authority create access for new credentials"
+    participant: "org.blockchaingang.credentialfabric.Authority"
+    operation: CREATE
+    resource: "org.blockchaingang.credentialfabric.Credential"
+    transaction: "org.blockchaingang.credentialfabric.IssueCredential"
+    action: ALLOW
+} 
 
 rule AuthorityIssueDetail {
-    description: "Allow the authority Create access for new entry details"
-    participant(a): "org.blockchaingang.credentialfabric.Authority"
+    description: "Allow the authority create access for new credential details"
+    participant: "org.blockchaingang.credentialfabric.Authority"
     operation: CREATE
-    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
-    transaction(tx): "org.blockchaingang.credentialfabric.IssueCredential"
-    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+    resource: "org.blockchaingang.credentialfabric.CredentialDetail"
+    transaction: "org.blockchaingang.credentialfabric.IssueCredential"
+    action: ALLOW
+}
+
+/*
+ * Allow authorities to create Transcations to Update credentials
+ */
+rule AuthorityUpdateTransaction {
+    description: "Allow the authority create transaction access for updating credentials"
+    participant: "org.blockchaingang.credentialfabric.Authority"
+    operation: CREATE
+    resource: "org.blockchaingang.credentialfabric.UpdateCredential"
+    action: ALLOW
+}
+
+/*
+ * Restrict updating of Credential Entries and Detail entries
+ * to Aurhority's creating for themselve within the Update Credential
+ * Transaction
+ */
+rule AuthorityUpdate {
+    description: "Allow the authority update access for existing credentials"
+    participant(p): "org.blockchaingang.credentialfabric.Authority"
+    operation: READ, UPDATE
+    resource(r): "org.blockchaingang.credentialfabric.Credential"
+    transaction(t): "org.blockchaingang.credentialfabric.UpdateCredential"
+    condition: (p.getIdentifier() == r.authority.getIdentifier())
     action: ALLOW
 }
 
 rule AuthorityUpdateDetail {
-    description: "Allow the authority Update access for existing entry details"
-    participant(a): "org.blockchaingang.credentialfabric.Authority"
+    description: "Allow the authority update access for existing credential details"
+    participant(p): "org.blockchaingang.credentialfabric.Authority"
     operation: READ, UPDATE
-    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
-    transaction(tx): "org.blockchaingang.credentialfabric.UpdateCredential"
-    condition: (tx.authority.getIdentifier() == a.getIdentifier())
+    resource(r): "org.blockchaingang.credentialfabric.CredentialDetail"
+    transaction: "org.blockchaingang.credentialfabric.UpdateCredential"
+    condition: ( p.getIdentifier() == r.entry.authority.getIdentifier())
     action: ALLOW
 }
 
+/*
+ * Allows reviewer to retrieve entries within the Review Credentials Transaction
+ * but not details unless given explicit permission
+ */
+rule ReviewerTransaction {
+    description: "Allow the reviewer to create a transaction to review credentials"
+    participant: "org.blockchaingang.credentialfabric.Reviewer"
+    operation: CREATE
+    resource: "org.blockchaingang.credentialfabric.ReviewCredentials"
+    action: ALLOW
+}
 
-rule ReviewerAllEntry {
-    description: "Allow the view read access to member credentials"
-    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+rule ReviewerAllReviewRequest {
+    description: "Allow the reviewer read access to all of their view credentials request"
+    participant(p): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
-    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
-    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredentials"
-    condition: (r.getIdentifier() == tx.reviewer.getIdentifier())
+    resource(r): "org.blockchaingang.credentialfabric.ViewCredentialsRequest"
+    condition: (p.getIdentifier === r.reviewer.getIdentifier())
+    action: ALLOW
+}
+
+rule ReviewerAllCredential {
+    description: "Allow the reviewer access to credentials within the review credentials transaction"
+    participant(p): "org.blockchaingang.credentialfabric.Reviewer"
+    operation: READ
+    resource(r): "org.blockchaingang.credentialfabric.Credential"
+    transaction(t): "org.blockchaingang.credentialfabric.ReviewCredentials"
+    condition: (p.getIdentifier === t.reviewer.getIdentifier())
     action: ALLOW
 }
 
 rule ReviewerAllDetail {
-    description: "Allow the view read access to member credentials"
-    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+    description: "Allow the reviewer access to credentials within the review credential details transaction"
+    participant(p): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
-    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
-    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredentials"
-    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.detail)
+    resource(r): "org.blockchaingang.credentialfabric.CredentialDetail"
+    transaction(t): "org.blockchaingang.credentialfabric.ReviewCredentials"
+    condition: (p.getIdentifier() == t.reviewer.getIdentifier() && r.detail)
     action: ALLOW
 }
 
-rule ReviewerOneEntry {
-    description: "Allow the view read access to a specific member credential"
-    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+rule ReviewerOne {
+    description: "Allow the reviewer read access to a specific credential"
+    participant(p): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
-    resource(c): "org.blockchaingang.credentialfabric.CredentialEntry"
+    resource(r): "org.blockchaingang.credentialfabric.Credential"
     transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredential"
-    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == c)
+    condition: (p.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == r)
     action: ALLOW
 }
 
 rule ReviewerOneDetail {
-    description: "Allow the view read access to member credentials"
-    participant(r): "org.blockchaingang.credentialfabric.Reviewer"
+    description: "Allow the reviewer read access to a specific credential detail"
+    participant(p): "org.blockchaingang.credentialfabric.Reviewer"
     operation: READ
-    resource(d): "org.blockchaingang.credentialfabric.CredentialEntryDetail"
-    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredential"
-    condition: (r.getIdentifier() == tx.reviewer.getIdentifier() && tx.entry == d.entry && tx.detail)
+    resource(r): "org.blockchaingang.credentialfabric.CredentialDetail"
+    transaction(t): "org.blockchaingang.credentialfabric.ReviewCredential"
+    condition: (p.getIdentifier() == t.reviewer.getIdentifier() && t.entry == r.entry && tx.detail)
     action: ALLOW
 }
 
+rule ReviewerCreateViewCredentialsEvent {
+    description: "Allow the reviewer to create and read an event for viewing credentials"
+    participant(p): "org.blockchaingang.credentialfabric.Reviewer"
+    operation: CREATE, READ
+    resource(r): "org.blockchaingang.credentialfabric.ViewCredentials"
+    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredentials"
+    condition: (true)
+    action: ALLOW
+}
+
+rule ReviewerCreateViewCredentialEvent {
+    description: "Allow the reviewer to create and read an event for viewing a credential"
+    participant(p): "org.blockchaingang.credentialfabric.Reviewer"
+    operation: CREATE, READ
+    resource(r): "org.blockchaingang.credentialfabric.ViewCredential"
+    transaction(tx): "org.blockchaingang.credentialfabric.ReviewCredential"
+    condition: (true)
+    action: ALLOW
+}
+
+/* 
+  * Grant all to system admins for this solution
+*/
 rule SystemAdmin {
   description:  "System ACL to permit all access"
   participant: "org.blockchaingang.credentialfabric.SystemAdmin"
@@ -127,6 +276,9 @@ rule SystemAdmin {
   action: ALLOW  
 }
 
+/*
+ * This is required to give the system permission to enforce rules and run transactions
+*/
 rule SystemACL {
   description:  "System ACL to permit all access"
   participant: "org.hyperledger.composer.system.Participant"
